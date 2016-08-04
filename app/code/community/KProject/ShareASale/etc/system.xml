@@ -1,13 +1,13 @@
 <?xml version="1.0"?>
 <config>
     <tabs>
-        <kproject translate="label" module="shareasale">
+        <kproject translate="label" module="kproject_sas">
             <label>KProject</label>
             <sort_order>10</sort_order>
         </kproject>
     </tabs>
     <sections>
-        <share_a_sale translate="label" module="shareasale">
+        <sas translate="label" module="kproject_sas">
             <label>ShareASale</label>
             <tab>kproject</tab>
             <frontend_type>text</frontend_type>
@@ -63,6 +63,6 @@
                     </fields>
                 </general>
             </groups>
-        </share_a_sale>
+        </sas>
     </sections>
 </config>

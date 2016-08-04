@@ -7,10 +7,44 @@
     </modules>
     <global>
         <helpers>
-            <kproject_shareasale>
+            <kproject_sas>
                 <class>KProject_ShareASale_Helper</class>
-            </kproject_shareasale>
+            </kproject_sas>
         </helpers>
+        <models>
+            <kproject_sas>
+                <class>KProject_ShareASale_Model</class>
+                <resourceModel>kproject_sas_mysql4</resourceModel>
+            </kproject_sas>
+            <kproject_sas_mysql4>
+                <class>KProject_ShareASale_Model_Mysql4</class>
+                <entities>
+                    <orders>
+                        <table>kproject_orders</table>
+                    </orders>
+                </entities>
+            </kproject_sas_mysql4>
+        </models>
+        <resources>
+            <shareasale_setup>
+                <setup>
+                    <module>KProject_ShareASale</module>
+                </setup>
+                <connection>
+                    <use>core_setup</use>
+                </connection>
+            </shareasale_setup>
+            <shareasale_write>
+                <connection>
+                    <use>core_write</use>
+                </connection>
+            </shareasale_write>
+            <shareasale_read>
+                <connection>
+                    <use>core_read</use>
+                </connection>
+            </shareasale_read>
+        </resources>
         <events>
             <sales_order_place_after>
                 <observers>

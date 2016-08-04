@@ -7,9 +7,20 @@
     </modules>
     <global>
         <helpers>
-            <shareasale>
+            <kproject_shareasale>
                 <class>KProject_ShareASale_Helper</class>
-            </shareasale>
+            </kproject_shareasale>
         </helpers>
+        <events>
+            <sales_order_place_after>
+                <observers>
+                    <kproject_shareasale_new_order>
+                        <type>singleton</type>
+                        <class>KProject_ShareASale_Model_Observer</class>
+                        <method>newOrderTransaction</method>
+                    </kproject_shareasale_new_order>
+                </observers>
+            </sales_order_place_after>
+        </events>
     </global>
 </config>

@@ -42,10 +42,19 @@
                             <show_in_store>1</show_in_store>
                             <comment>Found listed at Tools >> Merchant API</comment>
                         </token>
+                        <secret_key translate="label">
+                            <label>Secret Key</label>
+                            <frontend_type>text</frontend_type>
+                            <sort_order>30</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <!--<comment></comment>-->
+                        </secret_key>
                         <refund_comment translate="label">
                             <label>Refund Comment</label>
                             <frontend_type>textarea</frontend_type>
-                            <sort_order>30</sort_order>
+                            <sort_order>40</sort_order>
                             <show_in_default>1</show_in_default>
                             <show_in_website>1</show_in_website>
                             <show_in_store>1</show_in_store>

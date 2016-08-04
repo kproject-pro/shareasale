@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<config>
+    <modules>
+        <KProject_ShareASale>
+            <version>0.1.0</version>
+        </KProject_ShareASale>
+    </modules>
+    <global>
+        <helpers>
+            <shareasale>
+                <class>KProject_ShareASale_Helper</class>
+            </shareasale>
+        </helpers>
+    </global>
+</config>

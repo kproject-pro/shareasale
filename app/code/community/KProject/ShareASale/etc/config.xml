@@ -20,20 +20,20 @@
                 <class>KProject_ShareASale_Model_Mysql4</class>
                 <entities>
                     <orders>
-                        <table>kproject_orders</table>
+                        <table>kproject_sas_orders</table>
                     </orders>
                 </entities>
             </kproject_sas_mysql4>
         </models>
         <resources>
-            <shareasale_setup>
+            <kproject_sas_setup>
                 <setup>
                     <module>KProject_ShareASale</module>
                 </setup>
                 <connection>
                     <use>core_setup</use>
                 </connection>
-            </shareasale_setup>
+            </kproject_sas_setup>
             <shareasale_write>
                 <connection>
                     <use>core_write</use>
@@ -50,11 +50,32 @@
                 <observers>
                     <kproject_shareasale_new_order>
                         <type>singleton</type>
-                        <class>KProject_ShareASale_Model_Observer</class>
+                        <class>kproject_sas/observer</class>
                         <method>newOrderTransaction</method>
                     </kproject_shareasale_new_order>
                 </observers>
             </sales_order_place_after>
+            <order_cancel_after>
+                <observers>
+                    <sales_order_cancled>
+                        <type>singleton</type>
+                        <class>kproject_sas/observer</class>
+                        <method>cancelOrder</method>
+                    </sales_order_cancled>
+                </observers>
+            </order_cancel_after>
         </events>
     </global>
+    <crontab>
+        <jobs>
+            <shareasale_submitfailedtransactions>
+                <schedule>
+                    <cron_expr>0 2 * * *</cron_expr>
+                </schedule>
+                <run>
+                    <model>kproject_sas/cron::submitFailedTransactions</model>
+                </run>
+            </shareasale_submitfailedtransactions>
+        </jobs>
+    </crontab>
 </config>

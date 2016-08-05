@@ -5,18 +5,46 @@
  */
 class KProject_ShareASale_Model_Observer
 {
+
+    /**
+     * Send new order transaction to the API
+     *
+     * @param Varien_Event_Observer $observer
+     *
+     * @return $this
+     */
     public function newOrderTransaction(Varien_Event_Observer $observer)
     {
-        if (!class_exists('KProject_ShareASale_Api')) {
+        /** @var Mage_Sales_Model_Order $magentoOrder */
+        $magentoOrder = $observer->getEvent()->getData('order');
+
+        if (!$magentoOrder || Mage::registry('kproject_sas_observer_disable')) { //todo double check this
             return $this;
         }
 
-        /** @var Mage_Sales_Model_Order $magentoOrder */
-        $magentoOrder = $observer->getEvent()->getData('order');
-        $credentials  = Mage::helper('kproject_shareasale')->getCredentials($magentoOrder->getStoreId());
-        $api          = new KProject_ShareASale_Api($credentials);
-        $success      = $api->createNewTransaction($magentoOrder);
+        $this->getTransactionHelper()->create($magentoOrder);
 
         return $this;
+    }
+
+    public function refundOrderTransaction(Varien_Event_Observer $observer)
+    {
+        /** @var Mage_Sales_Model_Order $magentoOrder */
+        $magentoOrder = $observer->getEvent()->getData('order');
+
+        if (!$magentoOrder || Mage::registry('kproject_sas_observer_disable')) {
+            return $this;
+        }
+        //todo: check if partial or full refund needed
+
+        return $this;
+    }
+
+    /**
+     * @return KProject_ShareASale_Helper_Transaction
+     */
+    private function getTransactionHelper()
+    {
+        return Mage::helper('kproject_sas/transaction');
     }
 }

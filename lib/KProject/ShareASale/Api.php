@@ -7,6 +7,9 @@ class KProject_ShareASale_Api
 {
 
     const API_VERSION = 2.8;
+    const ACTION_NEW  = 'new';
+    const ACTION_VOID = 'void';
+    const ACTION_EDIT = 'edit';
 
     /** @var KProject_ShareASale_Credentials */
     private $credentials;
@@ -16,27 +19,77 @@ class KProject_ShareASale_Api
         $this->credentials = $credentials;
     }
 
-    public function createNewTransaction(Mage_Sales_Model_Order $order)
+    /**
+     * Creates a new ShareASale API transaction
+     *
+     * @param Mage_Sales_Model_Order $order
+     * @param array                  $params - optional extra params that can rewrite the originals
+     *
+     * @return Zend_Http_Response
+     */
+    public function createNewTransaction(Mage_Sales_Model_Order $order, $params = array())
     {
-        $action     = 'new';
-        $trans_type = 'sale';
-        $client     = new Zend_Http_Client();
-        $uri        =
-            "https://api.shareasale.com/w.cfm" .
-            "?merchantId=" . $this->credentials->getMerchantId() .
-            "&token=" . $this->credentials->getToken() .
-            "&version=" . self::API_VERSION .
-            "&action=" . $action .
-            '&transtype=' . $trans_type .
-            '&userID=' . $order->getData('sharesale_user_id') .
-            '&tracking=' . $order->getIncrementId() .
-            '&sscid=' . $order->getData('sscid');
-        $response   = $client
-            ->setHeaders('x-ShareASale-Date', $this->getTimeStamp())
-            ->setHeaders('x-ShareASale-Authentication', $this->getSignature($action))
-            ->setMethod()
-            ->setUri($uri)
-            ->request();
+        $action      = self::ACTION_NEW;
+        $queryParams = array(
+            'transtype' => 'sale',
+            'userID'    => $order->getData('userID'),
+            'tracking'  => $order->getIncrementId(),
+            'sscid'     => $order->getData('sscid')
+        );
+        $queryParams = array_merge($queryParams, $params);
+
+        $client = $this->getBaseClientSetup($action);
+        $client->getUri()->addReplaceQueryParameters($queryParams);
+        $response = $client->request();
+
+        return $response;
+    }
+
+    /**
+     * @param KProject_ShareASale_Model_Orders $order
+     * @param array                            $params - optional extra params that can rewrite the originals
+     *
+     * @return Zend_Http_Response
+     */
+    public function voidTransaction(KProject_ShareASale_Model_Orders $order, $params = array())
+    {
+        $action      = self::ACTION_VOID;
+        $queryParams = array(
+            'date'        => date('m/d/Y', $order->getCallDate()),
+            'ordernumber' => $order->getOrderNumber(),
+            'reason'      => 'Full Refund'
+        );
+        $queryParams = array_merge($queryParams, $params);
+
+        $client = $this->getBaseClientSetup($action);
+        $client->getUri()->addReplaceQueryParameters($queryParams);
+        $response = $client->request();
+
+        return $response;
+    }
+
+    /**
+     * @param KProject_ShareASale_Model_Orders $order
+     * @param array $params - optional extra params that can rewrite the originals
+     *
+     * @return Zend_Http_Response
+     */
+    public function editTransaction(KProject_ShareASale_Model_Orders $order, $params = array())
+    {
+        $action      = self::ACTION_EDIT;
+        $queryParams = array(
+            'date'        => date('m/d/Y', $order->getCallDate()),
+            'ordernumber' => $order->getOrderNumber(),
+            'newamount'   => '',
+            'newcomment'  => 'Partial Refund'
+        );
+        $queryParams = array_merge($queryParams, $params);
+
+        $client = $this->getBaseClientSetup($action);
+        $client->getUri()->addReplaceQueryParameters($queryParams);
+        $response = $client->request();
+
+        return $response;
     }
 
     private function getAuthenticationToken()
@@ -83,10 +136,32 @@ class KProject_ShareASale_Api
     }
 
     /**
+     * @param $action
+     *
+     * @return Zend_Http_Client
+     */
+    protected function getBaseClientSetup($action)
+    {
+        $client = $this->getZendClient();
+        $uri    =
+            'https://api.shareasale.com/w.cfm' .
+            '?merchantId=' . $this->credentials->getMerchantId() .
+            '&token=' . $this->credentials->getToken() .
+            '&version=' . self::API_VERSION .
+            '&action=' . $action;
+
+        return $client
+            ->setHeaders('x-ShareASale-Date', $this->getTimeStamp())
+            ->setHeaders('x-ShareASale-Authentication', $this->getSignature($action))
+            ->setMethod()
+            ->setUri($uri);
+    }
+
+    /**
      * Returns the signature to pass in the
      * header for authentication purposes
      *
-     * @param $actionVerb
+     * @param string $actionVerb
      *
      * @return string
      */
@@ -105,5 +180,13 @@ class KProject_ShareASale_Api
     public function getTimeStamp()
     {
         return gmdate(DATE_RFC1123);
+    }
+
+    /**
+     * @return Zend_Http_Client
+     */
+    public function getZendClient()
+    {
+        return new Zend_Http_Client();
     }
 }

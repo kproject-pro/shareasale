@@ -6,9 +6,9 @@
 class KProject_ShareASale_Helper_Status extends Mage_Core_Helper_Abstract
 {
     const STATUS_SUCCESS        = 1;
-    const STATUS_ERROR          = 2;
-    const STATUS_PARTIAL_REFUND = 3;
-    const STATUS_FULL_REFUND    = 4;
+    const STATUS_PARTIAL_REFUND = 2;
+    const STATUS_FULL_REFUND    = 3;
+    const STATUS_SAS_ERROR      = 4;
     const STATUS_MAGE_ERROR     = 5;
 
     /**
@@ -24,14 +24,15 @@ class KProject_ShareASale_Helper_Status extends Mage_Core_Helper_Abstract
             return self::STATUS_SUCCESS;
         }
 
-        return self::STATUS_ERROR;
+        return self::STATUS_SAS_ERROR;
     }
 
     /**
      * Parses out the error code from the
      * response
      *
-     * @param $body
+     * todo-konstantin: does not belong in this helper
+     * @param string $body
      *
      * @return mixed
      */
@@ -55,7 +56,7 @@ class KProject_ShareASale_Helper_Status extends Mage_Core_Helper_Abstract
      */
     public function isError($status)
     {
-        return $status === self::STATUS_ERROR;
+        return $status === self::STATUS_SAS_ERROR || $status === self::STATUS_MAGE_ERROR;
     }
 
     /**

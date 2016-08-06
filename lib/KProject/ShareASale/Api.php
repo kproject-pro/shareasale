@@ -30,11 +30,13 @@ class KProject_ShareASale_Api
     public function createNewTransaction(Mage_Sales_Model_Order $order, $params = array())
     {
         $action      = self::ACTION_NEW;
+        $total       = $order->getSubtotal() + $order->getDiscountAmount();
         $queryParams = array(
             'transtype' => 'sale',
-            'userID'    => $order->getData('userID'),
             'tracking'  => $order->getIncrementId(),
-            'sscid'     => $order->getData('sscid')
+            'amount'    => $total
+            //'userID'    => $order->getData('userID'),
+            //'sscid'     => $order->getData('sscid'),
         );
         $queryParams = array_merge($queryParams, $params);
 
@@ -70,7 +72,7 @@ class KProject_ShareASale_Api
 
     /**
      * @param KProject_ShareASale_Model_Orders $order
-     * @param array $params - optional extra params that can rewrite the originals
+     * @param array                            $params - optional extra params that can rewrite the originals
      *
      * @return Zend_Http_Response
      */
@@ -108,10 +110,7 @@ class KProject_ShareASale_Api
         $uri =
             "https://api.shareasale.com/w.cfm?merchantId=$myMerchantID&token=$APIToken&version=$APIVersion&action=$actionVerb";
 
-        curl_setopt(
-            $ch, CURLOPT_URL,
-            $uri
-        );
+        curl_setopt($ch, CURLOPT_URL, $uri);
         curl_setopt($ch, CURLOPT_HTTPHEADER, $myHeaders);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_HEADER, 0);

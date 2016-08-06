@@ -57,25 +57,38 @@
             </sales_order_place_after>
             <order_cancel_after>
                 <observers>
-                    <sales_order_cancled>
+                    <kproject_shareasale_refund_order>
                         <type>singleton</type>
                         <class>kproject_sas/observer</class>
                         <method>cancelOrder</method>
-                    </sales_order_cancled>
+                    </kproject_shareasale_refund_order>
                 </observers>
             </order_cancel_after>
         </events>
     </global>
+    <frontend>
+        <events>
+            <controller_action_predispatch>
+                <observers>
+                    <kproject_shareasale_set_params>
+                        <type>singleton</type>
+                        <class>kproject_sas/observer</class>
+                        <method>setParameters</method>
+                    </kproject_shareasale_set_params>
+                </observers>
+            </controller_action_predispatch>
+        </events>
+    </frontend>
     <crontab>
         <jobs>
-            <shareasale_submitfailedtransactions>
+            <shareasale_submit_failed_transactions>
                 <schedule>
                     <cron_expr>0 2 * * *</cron_expr>
                 </schedule>
                 <run>
                     <model>kproject_sas/cron::submitFailedTransactions</model>
                 </run>
-            </shareasale_submitfailedtransactions>
+            </shareasale_submit_failed_transactions>
         </jobs>
     </crontab>
 </config>

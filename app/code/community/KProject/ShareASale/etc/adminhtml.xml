@@ -8,10 +8,10 @@
                         <children>
                             <config>
                                 <children>
-                                    <sas translate="title" module="kproject_sas">
+                                    <kproject_sas translate="title" module="kproject_sas">
                                         <title>KProject: ShareASale</title>
                                         <sort_order>200</sort_order>
-                                    </sas>
+                                    </kproject_sas>
                                 </children>
                             </config>
                         </children>

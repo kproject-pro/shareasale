@@ -54,7 +54,7 @@ class KProject_ShareASale_Helper_Data extends Mage_Core_Helper_Abstract
      */
     public function isActive($storeId = null)
     {
-        return !class_exists('KProject_ShareASale_Api') || !$this->isEnabled($storeId);
+        return class_exists('KProject_ShareASale_Api') && $this->isEnabled($storeId);
     }
 
     /**

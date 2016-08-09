@@ -16,15 +16,15 @@ class KProject_ShareASale_Helper_Status extends Mage_Core_Helper_Abstract
      *
      * @param Zend_Http_Response $response
      *
-     * @return int
+     * @return bool
      */
-    public function getStatus(Zend_Http_Response $response)
+    public function isSuccessful(Zend_Http_Response $response)
     {
         if ($response->isSuccessful() && strpos($response->getBody(), 'Error Code ') === false) {
-            return self::STATUS_SUCCESS;
+            return true;
         }
 
-        return self::STATUS_SAS_ERROR;
+        return false;
     }
 
     /**
@@ -32,6 +32,7 @@ class KProject_ShareASale_Helper_Status extends Mage_Core_Helper_Abstract
      * response
      *
      * todo-konstantin: does not belong in this helper
+     *
      * @param string $body
      *
      * @return mixed

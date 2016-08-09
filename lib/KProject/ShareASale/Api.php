@@ -71,18 +71,21 @@ class KProject_ShareASale_Api
     }
 
     /**
-     * @param KProject_ShareASale_Model_Orders $order
+     * @param KProject_ShareASale_Model_Orders $kOrder
      * @param array                            $params - optional extra params that can rewrite the originals
      *
      * @return Zend_Http_Response
      */
-    public function editTransaction(KProject_ShareASale_Model_Orders $order, $params = array())
-    {
+    public function editTransaction(
+        KProject_ShareASale_Model_Orders $kOrder,
+        Mage_Sales_Model_Order $order,
+        $params = array()
+    ) {
         $action      = self::ACTION_EDIT;
         $queryParams = array(
-            'date'        => date('m/d/Y', $order->getCallDate()),
-            'ordernumber' => $order->getOrderNumber(),
-            'newamount'   => '',
+            'date'        => date('m/d/Y', $kOrder->getCallDate()),
+            'ordernumber' => $kOrder->getOrderNumber(),
+            'newamount'   => $order->getGrandTotal(), //todo-konstantin: check on this
             'newcomment'  => 'Partial Refund'
         );
         $queryParams = array_merge($queryParams, $params);
@@ -94,48 +97,8 @@ class KProject_ShareASale_Api
         return $response;
     }
 
-    private function getAuthenticationToken()
-    {
-        $APIVersion   = self::API_VERSION;
-        $myMerchantID = $this->credentials->getMerchantId(); //'53899';
-        $APIToken     = $this->credentials->getToken();
-        $myTimeStamp  = $this->getTimeStamp();
-
-        $actionVerb = 'bannerList'; //new?
-        $sigHash    = $this->getSignature($actionVerb);
-
-        $myHeaders = array("x-ShareASale-Date: $myTimeStamp", "x-ShareASale-Authentication: $sigHash");
-
-        $ch  = curl_init();
-        $uri =
-            "https://api.shareasale.com/w.cfm?merchantId=$myMerchantID&token=$APIToken&version=$APIVersion&action=$actionVerb";
-
-        curl_setopt($ch, CURLOPT_URL, $uri);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $myHeaders);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_HEADER, 0);
-
-        $returnResult = curl_exec($ch);
-
-        if ($returnResult) {
-            //parse HTTP Body to determine result of request
-            if (stripos($returnResult, 'Error Code ')) {
-                // error occurred
-                trigger_error($returnResult, E_USER_ERROR);
-            } else {
-                // success
-                echo $returnResult;
-            }
-        } else {
-            // connection error
-            trigger_error(curl_error($ch), E_USER_ERROR);
-        }
-
-        curl_close($ch);
-    }
-
     /**
-     * @param $action
+     * @param string $action
      *
      * @return Zend_Http_Client
      */

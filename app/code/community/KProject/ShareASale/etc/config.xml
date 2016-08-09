@@ -83,12 +83,20 @@
         <jobs>
             <shareasale_submit_failed_transactions>
                 <schedule>
-                    <cron_expr>0 2 * * *</cron_expr>
+                    <cron_expr>0 2 * * *</cron_expr><!-- Every day at 2 am -->
                 </schedule>
                 <run>
                     <model>kproject_sas/cron::submitFailedTransactions</model>
                 </run>
             </shareasale_submit_failed_transactions>
+            <shareasale_remove_successful_transactions>
+                <schedule>
+                    <cron_expr>0 2 * * 6</cron_expr><!-- Saturday at 2am -->
+                </schedule>
+                <run>
+                    <model>kproject_sas/cron::deleteSuccessfulTransactions</model>
+                </run>
+            </shareasale_remove_successful_transactions>
         </jobs>
     </crontab>
 </config>

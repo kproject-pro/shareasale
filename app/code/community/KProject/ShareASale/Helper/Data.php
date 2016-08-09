@@ -5,11 +5,11 @@
  */
 class KProject_ShareASale_Helper_Data extends Mage_Core_Helper_Abstract
 {
-    const XML_PATH_ENABLED        = 'kproject_sas/general/enabled';
-    const XML_PATH_TOKEN          = 'kproject_sas/general/token';
-    const XML_PATH_MERCHANT_ID    = 'kproject_sas/general/merchant_id';
-    const XML_PATH_SECRET_KEY     = 'kproject_sas/general/secret_key';
-    const XML_PATH_REFUND_COMMENT = 'kproject_sas/general/refund_comment';
+    const XML_PATH_ENABLED     = 'kproject_sas/general/enabled';
+    const XML_PATH_MERCHANT_ID = 'kproject_sas/general/merchant_id';
+    const XML_PATH_TOKEN       = 'kproject_sas/api/token';
+    const XML_PATH_SECRET_KEY  = 'kproject_sas/api/secret_key';
+    const XML_PATH_NEW_VIA_API = 'kproject_sas/api/new_transaction';
 
     /**
      * @param null $storeId
@@ -42,6 +42,19 @@ class KProject_ShareASale_Helper_Data extends Mage_Core_Helper_Abstract
     public function isEnabled($storeId = null)
     {
         return Mage::getStoreConfigFlag(self::XML_PATH_ENABLED, $storeId);
+    }
+
+    /**
+     * Check if the new transactions are allowed
+     * to be made via API
+     *
+     * @param null $storeId
+     *
+     * @return bool
+     */
+    public function newTransactionViaApiEnabled($storeId = null)
+    {
+        return Mage::getStoreConfigFlag(self::XML_PATH_NEW_VIA_API, $storeId);
     }
 
     /**

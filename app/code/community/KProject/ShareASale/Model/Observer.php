@@ -18,7 +18,10 @@ class KProject_ShareASale_Model_Observer
         /** @var Mage_Sales_Model_Order $magentoOrder */
         $magentoOrder = $observer->getEvent()->getData('order');
 
-        if (!$magentoOrder || Mage::registry('kproject_sas_observer_disable')) { //todo-konstantin double check this
+        if (!$magentoOrder
+            || Mage::registry('kproject_sas_observer_disable') //todo-konstantin: double check this
+            || !Mage::helper('kproject_sas')->newTransactionViaApiEnabled($magentoOrder->getStoreId())
+        ) {
             return $this;
         }
 
@@ -41,13 +44,18 @@ class KProject_ShareASale_Model_Observer
             return $this;
         }
 
-        //todo: check if partial or full refund needed
+        if ($magentoOrder->getTotalRefunded() >= $magentoOrder->getGrandTotal()) {
+            $this->getTransactionHelper()->void($magentoOrder);
+        } else {
+            $this->getTransactionHelper()->edit($magentoOrder);
+        }
 
         return $this;
     }
 
     /**
      * Helper that saves the cookies in to session to be pulled
+     * later on in place order observer
      *
      * @param Varien_Event_Observer $observer
      *
@@ -55,7 +63,11 @@ class KProject_ShareASale_Model_Observer
      */
     public function setParameters(Varien_Event_Observer $observer)
     {
-        //todo-sg: get request
+        if (!Mage::helper('kproject_sas')->newTransactionViaApiEnabled()) {
+            return $this;
+        }
+
+        //todo-konstantin: get request, make sure we are not in admin
         $event = $observer->getEvent();
         /** @var Mage_Core_Controller_Request_Http $request */
         $request = $observer->getData('controller_action')->getRequest();

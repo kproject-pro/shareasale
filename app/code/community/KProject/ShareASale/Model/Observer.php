@@ -37,15 +37,15 @@ class KProject_ShareASale_Model_Observer
      */
     public function refundOrderTransaction(Varien_Event_Observer $observer)
     {
-        /** @var Mage_Sales_Model_Order $magentoOrder */
-        $magentoOrder = $observer->getEvent()->getData('order');
+        /** @var Mage_Sales_Model_Order_Creditmemo $creditMemo */
+        $creditMemo  = $observer->getData('creditmemo');
 
-        if (!$magentoOrder || Mage::registry('kproject_sas_observer_disable')) {
+        if (!$creditMemo || Mage::registry('kproject_sas_observer_disable')) {
             return $this;
         }
-
+        $magentoOrder = $creditMemo->getOrder();
         if ($magentoOrder->getTotalRefunded() >= $magentoOrder->getGrandTotal()) {
-            $this->getTransactionHelper()->void($magentoOrder);
+            $this->getTransactionHelper()->void($magentoOrder); //todo-konstantin: try credit memo from invoice screen
         } else {
             $this->getTransactionHelper()->edit($magentoOrder);
         }

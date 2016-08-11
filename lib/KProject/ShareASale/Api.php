@@ -30,13 +30,11 @@ class KProject_ShareASale_Api
     public function createNewTransaction(Mage_Sales_Model_Order $order, $params = array())
     {
         $action      = self::ACTION_NEW;
-        $total       = $order->getSubtotal() + $order->getDiscountAmount();
+        $total       = $order->getGrandTotal();
         $queryParams = array(
             'transtype' => 'sale',
             'tracking'  => $order->getIncrementId(),
             'amount'    => $total
-            //'userID'    => $order->getData('userID'),
-            //'sscid'     => $order->getData('sscid'),
         );
         $queryParams = array_merge($queryParams, $params);
 
@@ -48,17 +46,17 @@ class KProject_ShareASale_Api
     }
 
     /**
-     * @param KProject_ShareASale_Model_Orders $order
-     * @param array                            $params - optional extra params that can rewrite the originals
+     * @param Mage_Sales_Model_Order $order
+     * @param array                  $params - optional extra params that can rewrite the originals
      *
      * @return Zend_Http_Response
      */
-    public function voidTransaction(KProject_ShareASale_Model_Orders $order, $params = array())
+    public function voidTransaction(Mage_Sales_Model_Order $order, $params = array())
     {
         $action      = self::ACTION_VOID;
         $queryParams = array(
-            'date'        => date('m/d/Y', $order->getCallDate()),
-            'ordernumber' => $order->getOrderNumber(),
+            'date'        => date('m/d/Y', $order->getCreatedAtDate()->getTimestamp()),
+            'ordernumber' => $order->getIncrementId(),
             'reason'      => 'Full Refund'
         );
         $queryParams = array_merge($queryParams, $params);
@@ -71,20 +69,17 @@ class KProject_ShareASale_Api
     }
 
     /**
-     * @param KProject_ShareASale_Model_Orders $kOrder
-     * @param array                            $params - optional extra params that can rewrite the originals
+     * @param Mage_Sales_Model_Order $kOrder
+     * @param array                  $params - optional extra params that can rewrite the originals
      *
      * @return Zend_Http_Response
      */
-    public function editTransaction(
-        KProject_ShareASale_Model_Orders $kOrder,
-        Mage_Sales_Model_Order $order,
-        $params = array()
-    ) {
+    public function editTransaction(Mage_Sales_Model_Order $order, $params = array())
+    {
         $action      = self::ACTION_EDIT;
         $queryParams = array(
-            'date'        => date('m/d/Y', $kOrder->getCallDate()),
-            'ordernumber' => $kOrder->getOrderNumber(),
+            'date'        => date('m/d/Y', $order->getCreatedAtDate()->getTimestamp()),
+            'ordernumber' => $order->getIncrementId(),
             'newamount'   => $order->getGrandTotal(), //todo-konstantin: check on this
             'newcomment'  => 'Partial Refund'
         );

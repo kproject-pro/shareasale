@@ -39,13 +39,27 @@ class KProject_ShareASale_Helper_Status extends Mage_Core_Helper_Abstract
      */
     public function parseErrorCode($body)
     {
-        $matches = preg_match('(?<=Code )(.*)(?=\\r)', $body);
+        preg_match('/Code\s(.*)\\r/', $body, $matches);
 
-        if (!empty($matches[0])) {
-            return $matches[0];
+        if (!empty($matches[1])) {
+            return $matches[1];
         }
 
         return $body;
+    }
+
+    /**
+     * @param Zend_Http_Response $response
+     *
+     * @return bool | string
+     */
+    public function getErrorCode($response)
+    {
+        if ($this->getStatusFromResponse($response) === self::STATUS_SAS_ERROR) {
+            return $this->parseErrorCode($response->getBody());
+        }
+
+        return false;
     }
 
     /**
@@ -68,5 +82,47 @@ class KProject_ShareASale_Helper_Status extends Mage_Core_Helper_Abstract
     public function getMageErrorCode()
     {
         return self::STATUS_MAGE_ERROR;
+    }
+
+    /**
+     * @param Zend_Http_Response $response
+     *
+     * @return int
+     */
+    public function getStatusFromNewResponse($response)
+    {
+        return $this->getStatusFromResponse($response);
+    }
+
+    /**
+     * @param Zend_Http_Response $response
+     *
+     * @return int
+     */
+    public function getStatusFromVoidResponse($response)
+    {
+        return $this->getStatusFromResponse($response, self::STATUS_FULL_REFUND);
+    }
+
+    /**
+     * @param Zend_Http_Response $response
+     *
+     * @return int
+     */
+    public function getStatusFromEditResponse($response)
+    {
+        return $this->getStatusFromResponse($response, self::STATUS_PARTIAL_REFUND);
+    }
+
+    /**
+     * @param Zend_Http_Response $response
+     *
+     * @return int
+     */
+    private function getStatusFromResponse($response, $success = self::STATUS_SUCCESS)
+    {
+        return $this->isSuccessful($response)
+            ? $success
+            : self::STATUS_SAS_ERROR;
     }
 }

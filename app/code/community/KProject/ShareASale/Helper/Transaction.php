@@ -5,132 +5,152 @@
  */
 class KProject_ShareASale_Helper_Transaction extends KProject_ShareASale_Helper_Data
 {
+
     /**
      * Create new transaction using the ShareASale API
      *
-     * @param Mage_Sales_Model_Order $magentoOrder
+     * @param Mage_Sales_Model_Order $order
      *
-     * @return bool|Mage_Sales_Model_Order
+     * @return bool | Mage_Sales_Model_Order
      */
-    public function create(Mage_Sales_Model_Order $magentoOrder)
+    public function create(Mage_Sales_Model_Order $order)
     {
-        if (!$this->isActive($magentoOrder->getStoreId())) {
+        $parameters = Mage::getSingleton('core/session')->getData('kproject_sas_parameters');
+        if (!$this->isActive($order->getStoreId()) || !$parameters) {
             return false;
         }
 
-        $parameters  = Mage::getSingleton('core/session')->getData('kproject_sas_parameters');
-        $credentials = $this->getCredentials($magentoOrder->getStoreId());
+        $credentials = $this->getCredentials($order->getStoreId());
         $api         = new KProject_ShareASale_Api($credentials);
 
         try {
-            $response = $api->createNewTransaction($magentoOrder, $parameters);
-            $status   = $this->statusHelper()->isSuccessful($response)
-                ? KProject_ShareASale_Helper_Status::STATUS_SUCCESS
-                : KProject_ShareASale_Helper_Status::STATUS_SAS_ERROR;
-
+            $response = $api->createNewTransaction($order, $parameters);
+            $status   = $this->statusHelper()->getStatusFromNewResponse($response);
         } catch (Exception $e) {
             $status = $this->statusHelper()->getMageErrorCode();
-            Mage::throwException('Error when calling ShareASale New Transaction API: ' . $e->getMessage());
+            Mage::getSingleton('core/session')->addError(
+                'Error when calling ShareASale New Transaction API: ' . $e->getMessage()
+            );
         }
 
-
-        $time   = Mage::getModel('core/date')->timestamp(time());
         $kOrder = Mage::getModel('kproject_sas/orders')
-                      ->setCallDate($time)
-                      ->setOrderNumber($magentoOrder->getIncrementId())
+                      ->setCallDate($order->getCreatedAtDate())
+                      ->setOrderNumber($order->getIncrementId())
                       ->setApiStatus($status);
 
-        if (isset($response) && $status === KProject_ShareASale_Helper_Status::STATUS_SAS_ERROR) {
-            $error = $this->statusHelper()->parseErrorCode($response->getBody());
-            $kOrder->setErrorCode($error);
+        if (!empty($response)) {
+            $error = $this->statusHelper()->getErrorCode($response);
+            if ($error) {
+                $kOrder->setErrorCode($error);
+            }
         }
 
         $kOrder->save();
 
-        return $magentoOrder;
+        return $order;
     }
 
     /**
      * Fully void a transaction using ShareASale API
      *
-     * @param Mage_Sales_Model_Order $magentoOrder
+     * @param Mage_Sales_Model_Order $order
      *
-     * @return bool|Mage_Sales_Model_Order
+     * @return bool | Mage_Sales_Model_Order
      */
-    public function void(Mage_Sales_Model_Order $magentoOrder)
+    public function void(Mage_Sales_Model_Order $order)
     {
-        /** @var KProject_ShareASale_Model_Orders $kOrder */
-        $kOrder = Mage::getModel('kproject_sas/orders')->load($magentoOrder->getIncrementId(), 'order_number');
-
-        if (!$this->isActive($magentoOrder->getStoreId()) || !$kOrder) {
+        if (!$this->isActive($order->getStoreId())) {
             return false;
         }
 
-        $parameters  = Mage::getSingleton('core/session')->getData('kproject_sas_parameters');
-        $credentials = $this->getCredentials($magentoOrder->getStoreId());
+        $credentials = $this->getCredentials($order->getStoreId());
         $api         = new KProject_ShareASale_Api($credentials);
+        $parameters  = Mage::getSingleton('core/session')->getData('kproject_sas_parameters');
+        $parameters  = $parameters ? $parameters : array();
 
         try {
-            $response = $api->voidTransaction($kOrder, $parameters);
-            $status   = $this->statusHelper()->isSuccessful($response)
-                ? KProject_ShareASale_Helper_Status::STATUS_SUCCESS
-                : KProject_ShareASale_Helper_Status::STATUS_SAS_ERROR;
-
+            $response = $api->voidTransaction($order, $parameters);
+            $status   = $this->statusHelper()->getStatusFromVoidResponse($response);
         } catch (Exception $e) {
             $status = $this->statusHelper()->getMageErrorCode();
-            Mage::throwException('Error when calling ShareASale Void Transaction API: ' . $e->getMessage());
-        }
-        $kOrder->setApiStatus($status);
-
-        if (isset($response) && $status === KProject_ShareASale_Helper_Status::STATUS_SAS_ERROR) {
-            $error = $this->statusHelper()->parseErrorCode($response->getBody());
-            $kOrder->setErrorCode($error);
+            Mage::getSingleton('core/session')->addError(
+                'Error when calling ShareASale Void Transaction API: ' . $e->getMessage()
+            );
         }
 
-        $kOrder->save();
+        if (!empty($response)) {
+            $error = $this->statusHelper()->getErrorCode($response);
+            $this->setOrderStatus($order, $status, $error);
+        }
 
-        return $magentoOrder;
+
+        return $order;
     }
 
     /**
      * Fully void a transaction using ShareASale API
      *
-     * @param Mage_Sales_Model_Order $magentoOrder
+     * @param Mage_Sales_Model_Order $order
      *
-     * @return bool|Mage_Sales_Model_Order
+     * @return bool | Mage_Sales_Model_Order
      */
-    public function edit(Mage_Sales_Model_Order $magentoOrder)
+    public function edit(Mage_Sales_Model_Order $order)
     {
-        /** @var KProject_ShareASale_Model_Orders $kOrder */
-        $kOrder = Mage::getModel('kproject_sas/orders')->load($magentoOrder->getIncrementId(), 'order_number');
-
-        if (!$this->isActive($magentoOrder->getStoreId()) || !$kOrder) {
+        if (!$this->isActive($order->getStoreId())) {
             return false;
         }
 
-        $parameters  = Mage::getSingleton('core/session')->getData('kproject_sas_parameters');
-        $credentials = $this->getCredentials($magentoOrder->getStoreId());
+        $credentials = $this->getCredentials($order->getStoreId());
         $api         = new KProject_ShareASale_Api($credentials);
+        $parameters  = Mage::getSingleton('core/session')->getData('kproject_sas_parameters');
+        $parameters  = $parameters ? $parameters : array();
 
         try {
-            $response = $api->editTransaction($kOrder, $magentoOrder, $parameters);
-            $status   = $this->statusHelper()->isSuccessful($response)
-                ? KProject_ShareASale_Helper_Status::STATUS_SUCCESS
-                : KProject_ShareASale_Helper_Status::STATUS_SAS_ERROR;
-
+            $response = $api->editTransaction($order, $parameters);
+            $status   = $this->statusHelper()->getStatusFromEditResponse($response);
         } catch (Exception $e) {
             $status = $this->statusHelper()->getMageErrorCode();
-            Mage::throwException('Error when calling ShareASale Edit Transaction API: ' . $e->getMessage());
+            Mage::getSingleton('core/session')->addError(
+                'Error when calling ShareASale Edit Transaction API: ' . $e->getMessage()
+            );
         }
+
+        if (!empty($response)) {
+            $error = $this->statusHelper()->getErrorCode($response);
+            $this->setOrderStatus($order, $status, $error);
+        }
+
+        return $order;
+    }
+
+    /**
+     * Helps set status for edit & void calls as
+     * they could be running without New Transaction
+     * API enabled
+     *
+     * @param Mage_Sales_Model_Order $order
+     * @param int                    $status
+     * @param bool                   $error
+     *
+     * @return bool
+     */
+    public function setOrderStatus($order, $status, $error = false)
+    {
+        if (!Mage::helper('kproject_sas')->newTransactionViaApiEnabled($order->getStoreId())) {
+            return false;
+        }
+
+        /** @var KProject_ShareASale_Model_Orders $kOrder */
+        $kOrder = Mage::getModel('kproject_sas/orders')->load($order->getIncrementId(), 'order_number');
         $kOrder->setApiStatus($status);
 
-        if (isset($response) && $status === KProject_ShareASale_Helper_Status::STATUS_SAS_ERROR) {
-            $error = $this->statusHelper()->parseErrorCode($response->getBody());
+        if ($error) {
             $kOrder->setErrorCode($error);
         }
 
         $kOrder->save();
 
-        return $magentoOrder;
+        return true;
     }
+
 }

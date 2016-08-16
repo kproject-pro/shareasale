@@ -19,7 +19,7 @@ class KProject_ShareASale_Model_Observer
         $magentoOrder = $observer->getEvent()->getData('order');
 
         if (!$magentoOrder
-            || Mage::registry('kproject_sas_observer_disable') //todo-konstantin: double check this
+            || Mage::registry('kproject_sas_observer_disable')
             || !Mage::helper('kproject_sas')->newTransactionViaApiEnabled($magentoOrder->getStoreId())
         ) {
             return $this;
@@ -44,8 +44,8 @@ class KProject_ShareASale_Model_Observer
             return $this;
         }
         $magentoOrder = $creditMemo->getOrder();
-        if ($magentoOrder->getTotalRefunded() >= $magentoOrder->getGrandTotal()) {
-            $this->getTransactionHelper()->void($magentoOrder); //todo-konstantin: try credit memo from invoice screen
+        if ($magentoOrder->getTotalRefunded() >= $magentoOrder->getGrandTotal()) { //todo-konstantin: not correct
+            $this->getTransactionHelper()->void($magentoOrder);
         } else {
             $this->getTransactionHelper()->edit($magentoOrder);
         }
@@ -58,7 +58,7 @@ class KProject_ShareASale_Model_Observer
      * later on in place order observer
      *
      * @param Varien_Event_Observer $observer
-     *
+     * todo-konstantin: don't think we need this observer as shareASale handles cookie stuff
      * @return $this
      */
     public function setParameters(Varien_Event_Observer $observer)

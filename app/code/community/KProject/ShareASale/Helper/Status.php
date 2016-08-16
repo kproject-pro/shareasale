@@ -12,6 +12,14 @@ class KProject_ShareASale_Helper_Status extends Mage_Core_Helper_Abstract
     const STATUS_MAGE_ERROR     = 5;
 
     /**
+     * @var array - error text that can come back from the API
+     */
+    private $errorMap = array(
+        'Error Code',
+        'Transaction Not Found'
+    );
+
+    /**
      * Figure out if the response is an error or not
      *
      * @param Zend_Http_Response $response
@@ -20,7 +28,7 @@ class KProject_ShareASale_Helper_Status extends Mage_Core_Helper_Abstract
      */
     public function isSuccessful(Zend_Http_Response $response)
     {
-        if ($response->isSuccessful() && strpos($response->getBody(), 'Error Code ') === false) {
+        if ($response->isSuccessful() && !$this->strposArray($response->getBody(), $this->errorMap)) {
             return true;
         }
 
@@ -37,7 +45,7 @@ class KProject_ShareASale_Helper_Status extends Mage_Core_Helper_Abstract
      *
      * @return mixed
      */
-    public function parseErrorCode($body)
+    private function parseErrorCode($body)
     {
         preg_match('/Code\s(.*)\\r/', $body, $matches);
 
@@ -55,8 +63,9 @@ class KProject_ShareASale_Helper_Status extends Mage_Core_Helper_Abstract
      */
     public function getErrorCode($response)
     {
-        if ($this->getStatusFromResponse($response) === self::STATUS_SAS_ERROR) {
-            return $this->parseErrorCode($response->getBody());
+        $code = $this->parseErrorCode($response->getBody());
+        if (is_integer($code)) {
+            return $code;
         }
 
         return false;
@@ -91,7 +100,9 @@ class KProject_ShareASale_Helper_Status extends Mage_Core_Helper_Abstract
      */
     public function getStatusFromNewResponse($response)
     {
-        return $this->getStatusFromResponse($response);
+        return $this->isSuccessful($response)
+            ? self::STATUS_SUCCESS
+            : self::STATUS_SAS_ERROR;
     }
 
     /**
@@ -101,7 +112,9 @@ class KProject_ShareASale_Helper_Status extends Mage_Core_Helper_Abstract
      */
     public function getStatusFromVoidResponse($response)
     {
-        return $this->getStatusFromResponse($response, self::STATUS_FULL_REFUND);
+        return $this->isSuccessful($response)
+            ? self::STATUS_FULL_REFUND
+            : self::STATUS_SAS_ERROR;
     }
 
     /**
@@ -111,18 +124,47 @@ class KProject_ShareASale_Helper_Status extends Mage_Core_Helper_Abstract
      */
     public function getStatusFromEditResponse($response)
     {
-        return $this->getStatusFromResponse($response, self::STATUS_PARTIAL_REFUND);
+        return $this->isSuccessful($response)
+            ? self::STATUS_PARTIAL_REFUND
+            : self::STATUS_SAS_ERROR;
     }
 
     /**
-     * @param Zend_Http_Response $response
+     * Helps log API errors to mage var/log/system.log
      *
-     * @return int
+     * @param int    $status
+     * @param string $response
      */
-    private function getStatusFromResponse($response, $success = self::STATUS_SUCCESS)
+    public function logError($status, $response)
     {
-        return $this->isSuccessful($response)
-            ? $success
-            : self::STATUS_SAS_ERROR;
+        if ($this->isError($status)) {
+            Mage::log('KProject ShareASale error from API: ' . $response);
+        }
+    }
+
+    /**
+     * @param string         $haystack
+     * @param array | string $needles
+     *
+     * @return int|false
+     */
+    private function strposArray($haystack, $needles)
+    {
+        if (is_array($needles)) {
+            foreach ($needles as $str) {
+                if (is_array($str)) {
+                    $pos = $this->strposArray($haystack, $str);
+                } else {
+                    $pos = strpos($haystack, $str);
+                }
+                if ($pos !== false) {
+                    return $pos;
+                }
+            }
+        } else {
+            return strpos($haystack, $needles);
+        }
+
+        return false;
     }
 }

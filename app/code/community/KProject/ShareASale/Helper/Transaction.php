@@ -38,8 +38,9 @@ class KProject_ShareASale_Helper_Transaction extends KProject_ShareASale_Helper_
                       ->setOrderNumber($order->getIncrementId())
                       ->setApiStatus($status);
 
-        if (!empty($response)) {
+        if (!empty($response) && !$this->statusHelper()->isSuccessful($response)) {
             $error = $this->statusHelper()->getErrorCode($response);
+            $this->statusHelper()->logError($status, $response);
             if ($error) {
                 $kOrder->setErrorCode($error);
             }
@@ -80,6 +81,7 @@ class KProject_ShareASale_Helper_Transaction extends KProject_ShareASale_Helper_
 
         if (!empty($response)) {
             $error = $this->statusHelper()->getErrorCode($response);
+            $this->statusHelper()->logError($status, $response);
             $this->setOrderStatus($order, $status, $error);
         }
 
@@ -88,7 +90,7 @@ class KProject_ShareASale_Helper_Transaction extends KProject_ShareASale_Helper_
     }
 
     /**
-     * Fully void a transaction using ShareASale API
+     * Make an edit to a transaction using ShareASale API
      *
      * @param Mage_Sales_Model_Order $order
      *
@@ -117,6 +119,7 @@ class KProject_ShareASale_Helper_Transaction extends KProject_ShareASale_Helper_
 
         if (!empty($response)) {
             $error = $this->statusHelper()->getErrorCode($response);
+            $this->statusHelper()->logError($status, $response);
             $this->setOrderStatus($order, $status, $error);
         }
 
@@ -142,12 +145,15 @@ class KProject_ShareASale_Helper_Transaction extends KProject_ShareASale_Helper_
 
         /** @var KProject_ShareASale_Model_Orders $kOrder */
         $kOrder = Mage::getModel('kproject_sas/orders')->load($order->getIncrementId(), 'order_number');
-        $kOrder->setApiStatus($status);
+        if (!$kOrder->getId()) {
+            return false;
+        }
 
         if ($error) {
             $kOrder->setErrorCode($error);
         }
 
+        $kOrder->setApiStatus($status);
         $kOrder->save();
 
         return true;

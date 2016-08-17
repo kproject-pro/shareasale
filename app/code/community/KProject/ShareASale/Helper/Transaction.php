@@ -158,6 +158,29 @@ class KProject_ShareASale_Helper_Transaction extends KProject_ShareASale_Helper_
     }
 
     /**
+     * Returns a list of parameters to use for
+     * new order transactions
+     *
+     * @param Mage_Sales_Model_Order $order
+     *
+     * @return array
+     */
+    public function getNewTransactionParams(Mage_Sales_Model_Order $order)
+    {
+        return array_merge(
+            array(
+                'transtype'   => 'sale',
+                'tracking'    => $order->getIncrementId(),
+                'amount'      => $order->getSubtotal() + $order->getDiscountAmount(),
+                'couponcode'  => $order->getCouponCode(),
+                'newcustomer' => Mage::helper('kproject_sas/customer')->getIsNewParam($order->getCustomerId()),
+                'currency'    => $order->getOrderCurrencyCode(),
+            ),
+            Mage::helper('kproject_sas/product')->getItemParams($order)
+        );
+    }
+
+    /**
      * Retrieves parameters from session
      *
      * @return array

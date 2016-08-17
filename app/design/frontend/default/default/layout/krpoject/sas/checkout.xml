@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<layout>
+    <checkout_onepage_success>
+        <reference name="before_body_end">
+            <block type="kproject_sas/checkout_pixel" name="kproject.sas.pixel" template="kproject/sas/pixel.phtml" />
+        </reference>
+    </checkout_onepage_success>
+</layout>

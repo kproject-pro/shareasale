@@ -30,7 +30,7 @@ class KProject_ShareASale_Api
     public function createNewTransaction(Mage_Sales_Model_Order $order, $params = array())
     {
         $action      = self::ACTION_NEW;
-        $queryParams = $this->getNewTransactionParams($order);
+        $queryParams = $this->getTransactionHelper()->getNewTransactionParams($order);
         $queryParams = array_merge($queryParams, $params);
 
         $client = $this->getBaseClientSetup($action);
@@ -117,7 +117,7 @@ class KProject_ShareASale_Api
      *
      * @return string
      */
-    public function getSignature($actionVerb)
+    private function getSignature($actionVerb)
     {
         $APIToken     = $this->credentials->getToken();
         $APISecretKey = $this->credentials->getSecretKey();
@@ -129,7 +129,7 @@ class KProject_ShareASale_Api
     /**
      * @return string
      */
-    public function getTimeStamp()
+    private function getTimeStamp()
     {
         return gmdate(DATE_RFC1123);
     }
@@ -143,69 +143,10 @@ class KProject_ShareASale_Api
     }
 
     /**
-     * Returns a list of parameters to use for
-     * new order transactions
-     *
-     * @param Mage_Sales_Model_Order $order
-     *
-     * @return array
+     * @return KProject_ShareASale_Helper_Transaction|Mage_Core_Helper_Abstract
      */
-    public function getNewTransactionParams(Mage_Sales_Model_Order $order)
+    private function getTransactionHelper()
     {
-        return array_merge(
-            array(
-                'transtype'   => 'sale',
-                'tracking'    => $order->getIncrementId(),
-                'amount'      => $order->getSubtotal() + $order->getDiscountAmount(),
-                'couponcode'  => $order->getCouponCode(),
-                'newcustomer' => $this->isNewCustomer($order->getCustomerId()),
-                'currency'    => $order->getOrderCurrencyCode(),
-            ),
-            $this->getProductItemParams($order)
-        );
-    }
-
-    /**
-     * @param string | int $customerId
-     *
-     * @return int | string
-     */
-    private function isNewCustomer($customerId)
-    {
-        $newCustomer = '';
-        if ($customerId) {
-            $orders      = Mage::getResourceModel('sales/order_collection')
-                               ->addFieldToFilter('customer_id', $customerId);
-            $newCustomer = $orders->getSize() > 1 ? 0 : 1;
-        }
-
-        return $newCustomer;
-    }
-
-    /**
-     * @param Mage_Sales_Model_Order $order
-     *
-     * @return array
-     */
-    private function getProductItemParams(Mage_Sales_Model_Order $order)
-    {
-        /** @var Mage_Sales_Model_Order_Item[] $items */
-        $items   = $order->getAllVisibleItems();
-        $skuList = $quantityList = $priceList = '';
-
-        $last_index = array_search(end($items), $items, true);
-        foreach ($items as $index => $item) {
-            $delimiter = $index === $last_index ? '' : ',';
-            $skuList .= $item->getSku() . $delimiter;
-            $quantityList .= ceil($item->getQtyOrdered()) . $delimiter;
-            $priceList .= ($item->getProduct()->getFinalPrice() - ($item->getDiscountAmount() / $item->getQtyOrdered()))
-                . $delimiter;
-        }
-
-        return array(
-            'skulist'      => $skuList,
-            'pricelist'    => $priceList,
-            'quantitylist' => $quantityList
-        );
+        return Mage::helper('kproject_sas/transaction');
     }
 }

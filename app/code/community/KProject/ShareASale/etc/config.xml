@@ -6,6 +6,11 @@
         </KProject_ShareASale>
     </modules>
     <global>
+        <blocks>
+            <kproject_sas>
+                <class>KProject_ShareASale_Block</class>
+            </kproject_sas>
+        </blocks>
         <helpers>
             <kproject_sas>
                 <class>KProject_ShareASale_Helper</class>
@@ -66,8 +71,15 @@
             </sales_order_creditmemo_refund>
         </events>
     </global>
-    <!--<frontend>
-        <events>
+    <frontend>
+        <layout>
+            <updates>
+                <kproject_sas>
+                    <file>kproject/sas/checkout.xml</file>
+                </kproject_sas>
+            </updates>
+        </layout>
+        <!--<events>
             <controller_action_predispatch>
                 <observers>
                     <kproject_shareasale_set_params>
@@ -77,8 +89,8 @@
                     </kproject_shareasale_set_params>
                 </observers>
             </controller_action_predispatch>
-        </events>
-    </frontend>-->
+        </events>-->
+    </frontend>
     <default>
         <kproject_sas>
             <api_new>

@@ -55,31 +55,6 @@ class KProject_ShareASale_Model_Observer
     }
 
     /**
-     * Helper that saves the cookies in to session to be pulled
-     * later on in place order observer
-     *
-     * @param Varien_Event_Observer $observer
-     * todo-konstantin: don't think we need this observer as shareASale handles cookie stuff
-     *
-     * @return $this
-     */
-    public function setParameters(Varien_Event_Observer $observer)
-    {
-        if (!Mage::helper('kproject_sas')->newTransactionViaApiEnabled()) {
-            return $this;
-        }
-
-        //todo-konstantin: get request, make sure we are not in admin
-        $event = $observer->getEvent();
-        /** @var Mage_Core_Controller_Request_Http $request */
-        $request = $observer->getData('controller_action')->getRequest();
-        $userId  = $request->getParam('userID');
-
-        //Mage::getSingleton('core/session')->setData('kproject_sas_parameters');
-        return $this;
-    }
-
-    /**
      * Checks if it's a full cancellation of the order
      * or a partial one
      *

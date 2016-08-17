@@ -38,13 +38,14 @@ class KProject_ShareASale_Model_Observer
     public function refundOrderTransaction(Varien_Event_Observer $observer)
     {
         /** @var Mage_Sales_Model_Order_Creditmemo $creditMemo */
-        $creditMemo  = $observer->getData('creditmemo');
+        $creditMemo = $observer->getData('creditmemo');
 
         if (!$creditMemo || Mage::registry('kproject_sas_observer_disable')) {
             return $this;
         }
+
         $magentoOrder = $creditMemo->getOrder();
-        if ($magentoOrder->getTotalRefunded() >= $magentoOrder->getGrandTotal()) { //todo-konstantin: not correct
+        if ($this->isFullCancellation($magentoOrder)) {
             $this->getTransactionHelper()->void($magentoOrder);
         } else {
             $this->getTransactionHelper()->edit($magentoOrder);
@@ -59,6 +60,7 @@ class KProject_ShareASale_Model_Observer
      *
      * @param Varien_Event_Observer $observer
      * todo-konstantin: don't think we need this observer as shareASale handles cookie stuff
+     *
      * @return $this
      */
     public function setParameters(Varien_Event_Observer $observer)
@@ -75,6 +77,31 @@ class KProject_ShareASale_Model_Observer
 
         //Mage::getSingleton('core/session')->setData('kproject_sas_parameters');
         return $this;
+    }
+
+    /**
+     * Checks if it's a full cancellation of the order
+     * or a partial one
+     *
+     * @param Mage_Sales_Model_Order $order
+     *
+     * @return bool
+     */
+    private function isFullCancellation(Mage_Sales_Model_Order $order)
+    {
+        $qtyCancelled = 0;
+        $orderItems   = $order->getItemsCollection();
+        /** @var Mage_Sales_Model_Order_Item $orderItem */
+        foreach ($orderItems as $orderItem) {
+            if ($orderItem->getProductType() != Mage_Catalog_Model_Product_Type::TYPE_CONFIGURABLE
+                && $orderItem->getQtyCanceled() + $orderItem->getQtyRefunded() > 0
+                && !$orderItem->getIsVirtual()
+            ) {
+                $qtyCancelled += intval($orderItem->getQtyCanceled()) + intval($orderItem->getQtyRefunded());
+            }
+        }
+
+        return $qtyCancelled == $order->getTotalQtyOrdered();
     }
 
     /**

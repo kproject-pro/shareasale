@@ -5,11 +5,13 @@
  */
 class KProject_ShareASale_Helper_Data extends Mage_Core_Helper_Abstract
 {
-    const XML_PATH_ENABLED     = 'kproject_sas/general/enabled';
-    const XML_PATH_MERCHANT_ID = 'kproject_sas/general/merchant_id';
-    const XML_PATH_TOKEN       = 'kproject_sas/api/token';
-    const XML_PATH_SECRET_KEY  = 'kproject_sas/api/secret_key';
-    const XML_PATH_NEW_VIA_API = 'kproject_sas/api/new_transaction';
+    const XML_PATH_ENABLED         = 'kproject_sas/general/enabled';
+    const XML_PATH_MERCHANT_ID     = 'kproject_sas/general/merchant_id';
+    const XML_PATH_TOKEN           = 'kproject_sas/api/token';
+    const XML_PATH_SECRET_KEY      = 'kproject_sas/api/secret_key';
+    const XML_PATH_API_NEW_ENABLED = 'kproject_sas/api_new/enabled';
+    const XML_PATH_AFFILIATE_KEY   = 'kproject_sas/api_new/affiliate_key';
+    const XML_PATH_CLICK_KEY       = 'kproject_sas/api_new/click_key';
 
     /**
      * @param null $storeId
@@ -54,7 +56,7 @@ class KProject_ShareASale_Helper_Data extends Mage_Core_Helper_Abstract
      */
     public function newTransactionViaApiEnabled($storeId = null)
     {
-        return Mage::getStoreConfigFlag(self::XML_PATH_NEW_VIA_API, $storeId);
+        return Mage::getStoreConfigFlag(self::XML_PATH_API_NEW_ENABLED, $storeId);
     }
 
     /**
@@ -68,6 +70,22 @@ class KProject_ShareASale_Helper_Data extends Mage_Core_Helper_Abstract
     public function isActive($storeId = null)
     {
         return class_exists('KProject_ShareASale_Api') && $this->isEnabled($storeId);
+    }
+
+    /**
+     * @return string
+     */
+    public function getAffiliateIdentifierKey($storeId = null)
+    {
+        return Mage::getStoreConfig(self::XML_PATH_AFFILIATE_KEY, $storeId);
+    }
+
+    /**
+     * @return string
+     */
+    public function getClickIdentifierKey($storeId = null)
+    {
+        return Mage::getStoreConfig(self::XML_PATH_CLICK_KEY, $storeId);
     }
 
     /**

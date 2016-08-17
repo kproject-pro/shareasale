@@ -66,7 +66,7 @@
             </sales_order_creditmemo_refund>
         </events>
     </global>
-    <frontend>
+    <!--<frontend>
         <events>
             <controller_action_predispatch>
                 <observers>
@@ -78,7 +78,16 @@
                 </observers>
             </controller_action_predispatch>
         </events>
-    </frontend>
+    </frontend>-->
+    <default>
+        <kproject_sas>
+            <api_new>
+                <enabled>0</enabled>
+                <affiliate_key>userID</affiliate_key>
+                <click_key>sscid</click_key>
+            </api_new>
+        </kproject_sas>
+    </default>
     <crontab>
         <jobs>
             <shareasale_submit_failed_transactions>

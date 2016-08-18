@@ -28,32 +28,11 @@ class KProject_ShareASale_Helper_Status extends Mage_Core_Helper_Abstract
      */
     public function isSuccessful(Zend_Http_Response $response)
     {
-        if ($response->isSuccessful() && $this->strposArray($response->getBody(), $this->errorMap)) {
+        if ($response->isSuccessful() && !$this->strposArray($response->getBody(), $this->errorMap)) {
             return true;
         }
 
         return false;
-    }
-
-    /**
-     * Parses out the error code from the
-     * response
-     *
-     * todo-konstantin: does not belong in this helper
-     *
-     * @param string $body
-     *
-     * @return mixed
-     */
-    private function parseErrorCode($body)
-    {
-        preg_match('/Code\s(.*)\\r/', $body, $matches);
-
-        if (!empty($matches[1])) {
-            return $matches[1];
-        }
-
-        return $body;
     }
 
     /**
@@ -64,7 +43,8 @@ class KProject_ShareASale_Helper_Status extends Mage_Core_Helper_Abstract
     public function getErrorCode($response)
     {
         $code = $this->parseErrorCode($response->getBody());
-        if (is_integer($code)) {
+
+        if (is_numeric($code)) {
             return $code;
         }
 
@@ -138,8 +118,28 @@ class KProject_ShareASale_Helper_Status extends Mage_Core_Helper_Abstract
     public function logError($status, $response)
     {
         if ($this->isError($status)) {
-            Mage::log('KProject ShareASale error from API: ' . $response);
+            Mage::log('KProject ShareASale error from API: ' . $response->getBody());
         }
+    }
+
+    /**
+     * Parses out the error code from the
+     * response
+     *
+     * @param string $body
+     *
+     * @return mixed
+     */
+    private function parseErrorCode($body)
+    {
+        $body = trim($body);
+        preg_match('/Code\s(.*)/', $body, $matches);
+
+        if (!empty($matches[1])) {
+            return $matches[1];
+        }
+
+        return $body;
     }
 
     /**
@@ -150,6 +150,8 @@ class KProject_ShareASale_Helper_Status extends Mage_Core_Helper_Abstract
      */
     private function strposArray($haystack, $needles)
     {
+        $haystack = trim($haystack);
+
         if (is_array($needles)) {
             foreach ($needles as $str) {
                 if (is_array($str)) {

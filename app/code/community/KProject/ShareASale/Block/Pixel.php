@@ -6,6 +6,9 @@
 class KProject_ShareASale_Block_Pixel extends Mage_Core_Block_Template
 {
     /**
+     * Returns the full pixel html
+     * to print in the body of frontend
+     *
      * @return string
      */
     public function printPixel()
@@ -20,7 +23,7 @@ class KProject_ShareASale_Block_Pixel extends Mage_Core_Block_Template
 
         $params = Mage::helper('kproject_sas/transaction')->getNewTransactionParams($order);
         try {
-            $client = $this->getBaseClientSetup($order);
+            $client = $this->getPixelHelper()->getBaseClientSetup($order);
             $client->getUri()->addReplaceQueryParameters($params);
             $link = $client->getUri(true);
             $img  = $this->getImageHtml($link);
@@ -29,6 +32,14 @@ class KProject_ShareASale_Block_Pixel extends Mage_Core_Block_Template
         }
 
         return $img;
+    }
+
+    /**
+     * @return KProject_ShareASale_Helper_Pixel
+     */
+    public function getPixelHelper()
+    {
+        return Mage::helper('kproject_sas/pixel');
     }
 
     /**
@@ -42,32 +53,5 @@ class KProject_ShareASale_Block_Pixel extends Mage_Core_Block_Template
     {
         /** @noinspection HtmlUnknownTarget */
         return $this->__('<img src="%s" width="1" height="1"/>', $uri);
-    }
-
-    /**
-     * Create base client
-     *
-     * @param Mage_Sales_Model_Order $order
-     *
-     * @return Zend_Http_Client
-     */
-    public function getBaseClientSetup(Mage_Sales_Model_Order $order)
-    {
-        $client      = new Zend_Http_Client();
-        $credentials = Mage::helper('kproject_sas/transaction')->getCredentials($order->getStoreId());
-        //todo-konstantin: ask about discrepancy of merchantId vs merchantID
-        $uri         = $this->getBaseUri() . '?merchantID=' . $credentials->getMerchantId();
-
-        return $client->setUri($uri);
-    }
-
-    /**
-     * Returns pixel main URL
-     *
-     * @return string
-     */
-    protected function getBaseUri()
-    {
-        return 'https://shareasale123.com/sale.cfm'; //todo-konstantin: change for live work
     }
 }

@@ -7,7 +7,9 @@ class KProject_ShareASale_Helper_Customer extends Mage_Core_Helper_Abstract
 {
 
     /**
-     * Retrieves an answer
+     * Retrieves an answer if the customer
+     * is new or not. If not, will return an
+     * empty string.
      *
      * @param string | int $customerId
      *
@@ -19,7 +21,7 @@ class KProject_ShareASale_Helper_Customer extends Mage_Core_Helper_Abstract
             return '';
         }
 
-        return $this->isNew($customerId);
+        return $this->isNew($customerId) ? 1 : 0;
     }
 
     /**

@@ -28,7 +28,7 @@ class KProject_ShareASale_Helper_Status extends Mage_Core_Helper_Abstract
      */
     public function isSuccessful(Zend_Http_Response $response)
     {
-        if ($response->isSuccessful() && !$this->strposArray($response->getBody(), $this->errorMap)) {
+        if ($response->isSuccessful() && $this->strposArray($response->getBody(), $this->errorMap)) {
             return true;
         }
 

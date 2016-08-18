@@ -60,6 +60,7 @@ class KProject_ShareASale_Model_Observer
      * Helper that saves the GET params into session to be pulled
      * later when an order is placed. Can be rewritten easily
      * with newer values.
+     *
      * @note This is a helper observer that will not ship with
      *       the initial version as that version was meant to
      *       utilize the script tag on the success page instead

@@ -3,13 +3,14 @@
 /**
  * @author Konstantin Kiritsenko <konstantin@kiritsenko.com>
  */
-class KProject_ShareASale_Block_Checkout_Pixel extends Mage_Core_Block_Abstract
+class KProject_ShareASale_Block_Pixel extends Mage_Core_Block_Template
 {
     /**
      * @return string
      */
     public function printPixel()
     {
+        //$orderId = Mage::getSingleton('checkout/type_onepage')->getLastOrderId();
         $order  = Mage::getSingleton('checkout/session')->getLastRealOrder();
         $params = Mage::helper('kproject_sas/transaction')->getNewTransactionParams($order);
 

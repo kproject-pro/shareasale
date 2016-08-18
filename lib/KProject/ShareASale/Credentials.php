@@ -71,4 +71,16 @@ class KProject_ShareASale_Credentials
     {
         return $this->secretKey;
     }
+
+    /**
+     * @return array
+     */
+    public function toArray()
+    {
+        return array(
+            'token'      => $this->getToken(),
+            'merchantID' => $this->getMerchantId(),
+            'secret_key' => $this->getSecretKey()
+        );
+    }
 }

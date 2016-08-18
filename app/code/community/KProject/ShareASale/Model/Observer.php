@@ -101,6 +101,8 @@ class KProject_ShareASale_Model_Observer
     /**
      * Checks if it's a full cancellation of the order
      * or a partial one
+     * - All product qty's were refunded
+     * - Amount refunded >= affiliate amount
      *
      * @param Mage_Sales_Model_Order $order
      *
@@ -120,7 +122,10 @@ class KProject_ShareASale_Model_Observer
             }
         }
 
-        return $qtyCancelled == $order->getTotalQtyOrdered();
+        $quantityRefunded = $qtyCancelled == $order->getTotalQtyOrdered();
+        $amountRefunded   = $order->getTotalRefunded() >= ($order->getSubtotal() + $order->getDiscountAmount());
+
+        return $quantityRefunded && $amountRefunded;
     }
 
     /**

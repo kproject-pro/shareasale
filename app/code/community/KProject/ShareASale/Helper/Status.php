@@ -75,51 +75,58 @@ class KProject_ShareASale_Helper_Status extends Mage_Core_Helper_Abstract
 
     /**
      * @param Zend_Http_Response $response
+     * @param int                $successStatus
      *
      * @return int
      */
-    public function getStatusFromNewResponse($response)
+    public function getStatusFromResponse($response, $successStatus = self::STATUS_SUCCESS)
     {
         return $this->isSuccessful($response)
-            ? self::STATUS_SUCCESS
+            ? $successStatus
             : self::STATUS_SAS_ERROR;
     }
 
     /**
-     * @param Zend_Http_Response $response
+     * Helps set status for edit & void calls as
+     * they could be running without New Transaction
+     * API enabled
      *
-     * @return int
-     */
-    public function getStatusFromVoidResponse($response)
-    {
-        return $this->isSuccessful($response)
-            ? self::STATUS_FULL_REFUND
-            : self::STATUS_SAS_ERROR;
-    }
-
-    /**
-     * @param Zend_Http_Response $response
+     * @param Mage_Sales_Model_Order  $order
+     * @param int                     $successStatus - 1,2,3
+     * @param Zend_Http_Response|null $response
      *
-     * @return int
+     * @return mixed
      */
-    public function getStatusFromEditResponse($response)
+    public function setKOrderStatus(Mage_Sales_Model_Order $order, $successStatus, Zend_Http_Response $response = null)
     {
-        return $this->isSuccessful($response)
-            ? self::STATUS_PARTIAL_REFUND
-            : self::STATUS_SAS_ERROR;
-    }
-
-    /**
-     * Helps log API errors to mage var/log/system.log
-     *
-     * @param int    $status
-     * @param string $response
-     */
-    public function logError($status, $response)
-    {
-        if ($this->isError($status)) {
-            Mage::log('KProject ShareASale error from API: ' . $response->getBody());
+        if (!Mage::helper('kproject_sas')->newTransactionViaApiEnabled($order->getStoreId())) {
+            return false;
         }
+
+        $kOrder = Mage::getModel('kproject_sas/orders')->load($order->getIncrementId(), 'order_number');
+
+        if (!$kOrder->getId()) {
+            $kOrder->setOrderNumber($order->getIncrementId());
+        }
+
+        if (!$response) {
+            $status = $this->getMageErrorCode();
+        } else {
+            $status = $this->getStatusFromResponse($response, $successStatus);
+            $error  = $this->getErrorCode($response);
+            $kOrder->setErrorCode($error);
+        }
+        $parameters = Mage::getSingleton('kproject_sas/session')->getParameters();
+
+        try {
+            $kOrder->setParameters($parameters)
+                   ->setApiStatus($status)
+                   ->save();
+        } catch (Exception $e) {
+            Mage::logException($e);
+        }
+
+        return $kOrder;
     }
 
     /**

@@ -17,7 +17,7 @@ class KProject_ShareASale_Model_Observer
     {
         /** @var Mage_Sales_Model_Order $magentoOrder */
         $magentoOrder = $observer->getEvent()->getData('order');
-        $parameters   = Mage::getSingleton('core/session')->getData('kproject_sas_parameters');
+        $parameters   = Mage::getSingleton('kproject_sas/session')->getParameters();;
 
         if (!$magentoOrder
             || Mage::registry('kproject_sas_observer_disable')
@@ -27,7 +27,12 @@ class KProject_ShareASale_Model_Observer
             return $this;
         }
 
-        $this->getTransactionHelper()->create($magentoOrder);
+        $response = $this->getTransactionHelper()->create($magentoOrder);
+        Mage::helper('kproject_sas/status')->setKOrderStatus(
+            $magentoOrder,
+            KProject_ShareASale_Helper_Status::STATUS_SUCCESS,
+            $response
+        );
 
         return $this;
     }
@@ -48,10 +53,13 @@ class KProject_ShareASale_Model_Observer
 
         $magentoOrder = $creditMemo->getOrder();
         if ($this->isFullCancellation($magentoOrder)) {
-            $this->getTransactionHelper()->void($magentoOrder);
+            $response = $this->getTransactionHelper()->void($magentoOrder);
+            $status = KProject_ShareASale_Helper_Status::STATUS_FULL_REFUND;
         } else {
-            $this->getTransactionHelper()->edit($magentoOrder);
+            $response = $this->getTransactionHelper()->edit($magentoOrder);
+            $status = KProject_ShareASale_Helper_Status::STATUS_PARTIAL_REFUND;
         }
+        Mage::helper('kproject_sas/status')->setKOrderStatus($magentoOrder, $status, $response);
 
         return $this;
     }
@@ -86,8 +94,7 @@ class KProject_ShareASale_Model_Observer
         $clickId  = $request->getParam($clickKey);
 
         if ($userId && $clickId) {
-            Mage::getSingleton('core/session')->setData(
-                'kproject_sas_parameters',
+            Mage::getSingleton('kproject_sas/session')->setParameters(
                 array(
                     $userKey  => $userId,
                     $clickKey => $clickId

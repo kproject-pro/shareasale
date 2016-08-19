@@ -26,17 +26,17 @@ $table = $installer->getConnection()
                        array(),
                        'Mage Order Increment ID'
                    )
-                   ->addColumn(
-                       'call_date',
-                       Varien_Db_Ddl_Table::TYPE_DATETIME,
-                       null,
-                       array(),
-                       'API call date'
+                    ->addColumn(
+                        'parameters',
+                        Varien_Db_Ddl_Table::TYPE_TEXT,
+                        1000,
+                        array(),
+                        'Parameters passed'
                    )
                    ->addColumn(
                        'api_status',
                        Varien_Db_Ddl_Table::TYPE_TINYINT,
-                       null,
+                       2,
                        array(),
                        'Status'
                    )
@@ -46,7 +46,16 @@ $table = $installer->getConnection()
                        null,
                        array(),
                        'API error code'
-                   );
+                   )
+                    ->addColumn(
+                        'retry_count',
+                        Varien_Db_Ddl_Table::TYPE_TINYINT,
+                        3,
+                        array(
+                            'default' => 0
+                        ),
+                        '# of resend attempts'
+                    );
 
 if (!$installer->getConnection()->isTableExists($table->getName())) {
     $installer->getConnection()->createTable($table);

@@ -8,15 +8,31 @@ class KProject_ShareASale_Model_Cron
     /**
      * Attempt to send previously failed transactions
      * that are in status pending or specific error_code.
+     * Also keeps track of previous attempts. On 5+ attempts
+     * it removes the entry and continues to the next one.
      */
     public function submitFailedTransactions()
     {
         /** @var KProject_ShareASale_Model_Orders $item */
         foreach ($this->getFailedOrders() as $item) {
             if ($item->getOrderNumber()) {
+                $item->incrementRetryCount()->save();
                 /** @var Mage_Sales_Model_Order $mageOrder */
-                $mageOrder = Mage::getModel('sales/order')->load($item->getOrderNumber());
-                Mage::helper('kproject_sas/transaction')->create($mageOrder);
+                $mageOrder = Mage::getModel('sales/order')->loadByIncrementId($item->getOrderNumber());
+
+                if (!Mage::helper('kproject_sas')->newTransactionViaApiEnabled($mageOrder->getStoreId())
+                    || $item->removeOnTooManyRetries()
+                ) {
+                    continue;
+                }
+
+                Mage::getSingleton('kproject_sas/session')->setParameters($item->getParameters());
+                $response = Mage::helper('kproject_sas/transaction')->create($mageOrder);
+                Mage::helper('kproject_sas/status')->setKOrderStatus(
+                    $mageOrder,
+                    KProject_ShareASale_Helper_Status::STATUS_SUCCESS,
+                    $response
+                );
             }
         }
 
@@ -95,8 +111,8 @@ class KProject_ShareASale_Model_Cron
                           );
         $collection
             ->getSelect()
-            ->join(array('mage_order' => 'sales_flat_order'), 'mage_order.order_id = main_table.order_number')
-            ->where('mage_order.store_id', array('in' => $storeIds)); //todo: needs to be tested
+            ->join(array('mage_order' => 'sales_flat_order'), 'mage_order.increment_id = order_number')
+            ->where('mage_order.store_id', array('in' => $storeIds));
 
         return $collection;
     }

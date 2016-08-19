@@ -15,7 +15,7 @@ class KProject_ShareASale_Helper_Transaction extends KProject_ShareASale_Helper_
      */
     public function create(Mage_Sales_Model_Order $order)
     {
-        $parameters = $this->getExtraSessionParameters();
+        $parameters = Mage::getSingleton('kproject_sas/session')->getParameters();
         if (!$this->isActive($order->getStoreId()) || !$parameters) {
             return false;
         }
@@ -25,30 +25,12 @@ class KProject_ShareASale_Helper_Transaction extends KProject_ShareASale_Helper_
 
         try {
             $response = $api->createNewTransaction($order, $parameters);
-            $status   = $this->statusHelper()->getStatusFromNewResponse($response);
         } catch (Exception $e) {
-            $status = $this->statusHelper()->getMageErrorCode();
-            Mage::getSingleton('core/session')->addError(
-                'Error when calling ShareASale New Transaction API: ' . $e->getMessage()
-            );
+            $response = null;
+            Mage::logException($e);
         }
 
-        $kOrder = Mage::getModel('kproject_sas/orders')
-                      ->setCallDate($order->getCreatedAtDate())
-                      ->setOrderNumber($order->getIncrementId())
-                      ->setApiStatus($status);
-
-        if (!empty($response) && !$this->statusHelper()->isSuccessful($response)) {
-            $error = $this->statusHelper()->getErrorCode($response);
-            $this->statusHelper()->logError($status, $response);
-            if ($error) {
-                $kOrder->setErrorCode($error);
-            }
-        }
-
-        $kOrder->save();
-
-        return $order;
+        return $response;
     }
 
     /**
@@ -66,26 +48,18 @@ class KProject_ShareASale_Helper_Transaction extends KProject_ShareASale_Helper_
 
         $credentials = $this->getCredentials($order->getStoreId());
         $api         = new KProject_ShareASale_Api($credentials);
-        $parameters  = $this->getExtraSessionParameters();
+        $parameters  = Mage::getSingleton('kproject_sas/session')->getParameters();
 
         try {
             $response = $api->voidTransaction($order, $parameters);
-            $status   = $this->statusHelper()->getStatusFromVoidResponse($response);
         } catch (Exception $e) {
-            $status = $this->statusHelper()->getMageErrorCode();
+            $response = null;
             Mage::getSingleton('core/session')->addError(
                 'Error when calling ShareASale Void Transaction API: ' . $e->getMessage()
             );
         }
 
-        if (!empty($response)) {
-            $error = $this->statusHelper()->getErrorCode($response);
-            $this->statusHelper()->logError($status, $response);
-            $this->setOrderStatus($order, $status, $error);
-        }
-
-
-        return $order;
+        return $response;
     }
 
     /**
@@ -103,58 +77,18 @@ class KProject_ShareASale_Helper_Transaction extends KProject_ShareASale_Helper_
 
         $credentials = $this->getCredentials($order->getStoreId());
         $api         = new KProject_ShareASale_Api($credentials);
-        $parameters  = $this->getExtraSessionParameters();
+        $parameters  = Mage::getSingleton('kproject_sas/session')->getParameters();
 
         try {
             $response = $api->editTransaction($order, $parameters);
-            $status   = $this->statusHelper()->getStatusFromEditResponse($response);
         } catch (Exception $e) {
-            $status = $this->statusHelper()->getMageErrorCode();
+            $response = null;
             Mage::getSingleton('core/session')->addError(
                 'Error when calling ShareASale Edit Transaction API: ' . $e->getMessage()
             );
         }
 
-        if (!empty($response)) {
-            $error = $this->statusHelper()->getErrorCode($response);
-            $this->statusHelper()->logError($status, $response);
-            $this->setOrderStatus($order, $status, $error);
-        }
-
-        return $order;
-    }
-
-    /**
-     * Helps set status for edit & void calls as
-     * they could be running without New Transaction
-     * API enabled
-     *
-     * @param Mage_Sales_Model_Order $order
-     * @param int                    $status
-     * @param bool                   $error
-     *
-     * @return bool
-     */
-    public function setOrderStatus($order, $status, $error = false)
-    {
-        if (!Mage::helper('kproject_sas')->newTransactionViaApiEnabled($order->getStoreId())) {
-            return false;
-        }
-
-        /** @var KProject_ShareASale_Model_Orders $kOrder */
-        $kOrder = Mage::getModel('kproject_sas/orders')->load($order->getIncrementId(), 'order_number');
-        if (!$kOrder->getId()) {
-            return false;
-        }
-
-        if ($error) {
-            $kOrder->setErrorCode($error);
-        }
-
-        $kOrder->setApiStatus($status);
-        $kOrder->save();
-
-        return true;
+        return $response;
     }
 
     /**
@@ -178,17 +112,5 @@ class KProject_ShareASale_Helper_Transaction extends KProject_ShareASale_Helper_
             ),
             Mage::helper('kproject_sas/product')->getItemParams($order)
         );
-    }
-
-    /**
-     * Retrieves parameters from session
-     *
-     * @return array
-     */
-    private function getExtraSessionParameters()
-    {
-        $parameters = Mage::getSingleton('core/session')->getData('kproject_sas_parameters');
-
-        return $parameters ? $parameters : array();
     }
 }

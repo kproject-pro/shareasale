@@ -17,8 +17,7 @@ class KProject_ShareASale_Helper_Pixel extends KProject_ShareASale_Helper_Data
     {
         $client      = new Zend_Http_Client();
         $credentials = Mage::helper('kproject_sas/transaction')->getCredentials($order->getStoreId());
-        //todo-konstantin: ask about discrepancy of merchantId vs merchantID
-        $uri = $this->getPixelUrl() . '?merchantID=' . $credentials->getMerchantId();
+        $uri = $this->getPixelUrl() . '?merchantId=' . $credentials->getMerchantId();
 
         return $client->setUri($uri);
     }

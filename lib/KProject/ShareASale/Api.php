@@ -50,7 +50,7 @@ class KProject_ShareASale_Api
     {
         $action      = self::ACTION_VOID;
         $queryParams = array(
-            'date'        => date('m/d/Y', $order->getCreatedAtDate()->getTimestamp()),
+            'date'        => $this->getOrderDate($order),
             'ordernumber' => $order->getIncrementId(),
             'reason'      => 'Full Refund'
         );
@@ -73,7 +73,7 @@ class KProject_ShareASale_Api
     {
         $action      = self::ACTION_EDIT;
         $queryParams = array(
-            'date'        => date('m/d/Y', $order->getCreatedAtDate()->getTimestamp()),
+            'date'        => $this->getOrderDate($order),
             'ordernumber' => $order->getIncrementId(),
             'newamount'   => $order->getGrandTotal() - $order->getTotalRefunded(),
             'newcomment'  => 'Partial Refund'
@@ -148,5 +148,19 @@ class KProject_ShareASale_Api
     private function getTransactionHelper()
     {
         return Mage::helper('kproject_sas/transaction');
+    }
+
+    /**
+     * @param Mage_Sales_Model_Order $order
+     *
+     * @return string
+     */
+    private function getOrderDate(Mage_Sales_Model_Order $order)
+    {
+        $date = new Zend_Date($order->getCreatedAtDate());
+        $date->setTimezone('EST5EDT');
+        $orderDate = date('m/d/Y', $date->getTimestamp());
+
+        return $orderDate ? $orderDate : '';
     }
 }

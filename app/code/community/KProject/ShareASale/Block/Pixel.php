@@ -13,7 +13,11 @@ class KProject_ShareASale_Block_Pixel extends Mage_Core_Block_Template
      */
     public function printPixel()
     {
-        $img   = '';
+        $img = '';
+        if (!Mage::helper('kproject_sas')->isEnabled()) {
+            return $img;
+        }
+
         $order = Mage::getSingleton('checkout/session')->getLastRealOrder();
 
         if (!$order->getId()) {

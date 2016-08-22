@@ -35,9 +35,8 @@ class KProject_ShareASale_Api
 
         $client = $this->getBaseClientSetup($action);
         $client->getUri()->addReplaceQueryParameters($queryParams);
-        $response = $client->request();
 
-        return $response;
+        return $client->request();
     }
 
     /**
@@ -58,9 +57,8 @@ class KProject_ShareASale_Api
 
         $client = $this->getBaseClientSetup($action);
         $client->getUri()->addReplaceQueryParameters($queryParams);
-        $response = $client->request();
 
-        return $response;
+        return $client->request();
     }
 
     /**
@@ -82,9 +80,8 @@ class KProject_ShareASale_Api
 
         $client = $this->getBaseClientSetup($action);
         $client->getUri()->addReplaceQueryParameters($queryParams);
-        $response = $client->request();
 
-        return $response;
+        return $client->request();
     }
 
     /**

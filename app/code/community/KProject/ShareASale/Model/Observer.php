@@ -17,12 +17,13 @@ class KProject_ShareASale_Model_Observer
     {
         /** @var Mage_Sales_Model_Order $magentoOrder */
         $magentoOrder = $observer->getEvent()->getData('order');
-        $parameters   = Mage::getSingleton('kproject_sas/session')->getParameters();;
+        $parameters   = Mage::getSingleton('kproject_sas/session')->getParameters();
 
         if (!$magentoOrder
             || Mage::registry('kproject_sas_observer_disable')
             || !Mage::helper('kproject_sas')->newTransactionViaApiEnabled($magentoOrder->getStoreId())
             || empty($parameters)
+            || $this->isCheckout()
         ) {
             return $this;
         }
@@ -54,10 +55,10 @@ class KProject_ShareASale_Model_Observer
         $magentoOrder = $creditMemo->getOrder();
         if ($this->isFullCancellation($magentoOrder)) {
             $response = $this->getTransactionHelper()->void($magentoOrder);
-            $status = KProject_ShareASale_Helper_Status::STATUS_FULL_REFUND;
+            $status   = KProject_ShareASale_Helper_Status::STATUS_FULL_REFUND;
         } else {
             $response = $this->getTransactionHelper()->edit($magentoOrder);
-            $status = KProject_ShareASale_Helper_Status::STATUS_PARTIAL_REFUND;
+            $status   = KProject_ShareASale_Helper_Status::STATUS_PARTIAL_REFUND;
         }
         Mage::helper('kproject_sas/status')->setKOrderStatus($magentoOrder, $status, $response);
 
@@ -133,6 +134,17 @@ class KProject_ShareASale_Model_Observer
         $amountRefunded   = $order->getTotalRefunded() >= ($order->getSubtotal() + $order->getDiscountAmount());
 
         return $quantityRefunded && $amountRefunded;
+    }
+
+    /**
+     * Checks if current observer is firing
+     * from the checkout page
+     *
+     * @return bool
+     */
+    private function isCheckout()
+    {
+        return strpos(Mage::app()->getRequest()->getRequestUri(), 'saveOrder') !== false;
     }
 
     /**

@@ -1,12 +1,13 @@
 <?php
 
-
 /**
  *
  * @author Konstantin Kiritsenko <konstantin@kiritsenko.com>
  */
 class KProject_ShareASale_Model_Session extends Mage_Core_Model_Session_Abstract
 {
+    const KEY = 'kproject_parameters';
+
     public function __construct()
     {
         $this->init('kproject_sas');
@@ -17,7 +18,7 @@ class KProject_ShareASale_Model_Session extends Mage_Core_Model_Session_Abstract
      */
     public function getParameters()
     {
-        $params = $this->getData('parameters');
+        $params = $this->getData(self::KEY);
 
         if (empty($params)) {
             $params = array();
@@ -33,7 +34,7 @@ class KProject_ShareASale_Model_Session extends Mage_Core_Model_Session_Abstract
      */
     public function setParameters($parameters)
     {
-        return $this->setData('parameters', $parameters);
+        return $this->setData(self::KEY, $parameters);
     }
 
     /**
@@ -41,6 +42,6 @@ class KProject_ShareASale_Model_Session extends Mage_Core_Model_Session_Abstract
      */
     public function unsetParameters()
     {
-        return $this->unsetData('parameters');
+        return $this->unsetData(self::KEY);
     }
 }

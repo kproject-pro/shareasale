@@ -15,7 +15,7 @@ class KProject_ShareASale_Helper_Transaction extends KProject_ShareASale_Helper_
      */
     public function create(Mage_Sales_Model_Order $order)
     {
-        $parameters = Mage::getSingleton('kproject_sas/session')->getParameters();
+        $parameters = $this->getSession()->getParameters();
         if (!$this->isActive($order->getStoreId()) || !$parameters) {
             return false;
         }
@@ -48,7 +48,7 @@ class KProject_ShareASale_Helper_Transaction extends KProject_ShareASale_Helper_
 
         $credentials = $this->getCredentials($order->getStoreId());
         $api         = new KProject_ShareASale_Api($credentials);
-        $parameters  = Mage::getSingleton('kproject_sas/session')->getParameters();
+        $parameters  = $this->getSession()->getParameters();
 
         try {
             $response = $api->voidTransaction($order, $parameters);
@@ -77,7 +77,7 @@ class KProject_ShareASale_Helper_Transaction extends KProject_ShareASale_Helper_
 
         $credentials = $this->getCredentials($order->getStoreId());
         $api         = new KProject_ShareASale_Api($credentials);
-        $parameters  = Mage::getSingleton('kproject_sas/session')->getParameters();
+        $parameters  = $this->getSession()->getParameters();
 
         try {
             $response = $api->editTransaction($order, $parameters);
@@ -112,5 +112,13 @@ class KProject_ShareASale_Helper_Transaction extends KProject_ShareASale_Helper_
             ),
             Mage::helper('kproject_sas/product')->getItemParams($order)
         );
+    }
+
+    /**
+     * @return KProject_ShareASale_Model_Session
+     */
+    private function getSession()
+    {
+        return Mage::getSingleton('kproject_sas/session');
     }
 }

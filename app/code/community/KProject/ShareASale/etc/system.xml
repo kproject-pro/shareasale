@@ -52,7 +52,7 @@
                     <show_in_default>1</show_in_default>
                     <show_in_website>1</show_in_website>
                     <show_in_store>1</show_in_store>
-                    <comment>Allows refunds and editing orders via API and new transaction script creation</comment>
+                    <comment><![CDATA[ Allows new transaction recording as well as full & partial refunds ]]></comment>
                     <expanded>1</expanded>
                     <fields>
                         <token translate="label">
@@ -84,7 +84,8 @@
                     <show_in_default>1</show_in_default>
                     <show_in_website>1</show_in_website>
                     <show_in_store>1</show_in_store>
-                    <comment>Make new transactions via API instead of success page script</comment>
+                    <comment>This is for special case usage to integrate with 3rd party plugins.
+                        Please consult ShareASale if you feel like you need this feature.</comment>
                     <expanded>0</expanded>
                     <fields>
                         <enabled translate="label">
@@ -96,7 +97,7 @@
                             <show_in_website>1</show_in_website>
                             <show_in_store>1</show_in_store>
                             <comment>Recommended to keep this at No as you will need ShareASale to enable this</comment>
-                            <tooltip>Makes new transaction calls via API instead of the checkout tracking pixel</tooltip>
+                            <tooltip>Enables 3rd party plugins to make ShareASale new transaction API calls</tooltip>
                         </enabled>
                         <affiliate_key translate="label">
                             <label>Affiliate ID key</label>
